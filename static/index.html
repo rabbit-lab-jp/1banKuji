@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ff7a18" />
+    <meta
+      name="description"
+      content="直近一週間の一番くじ情報をホーム画面から簡単に確認できるアプリです。"
+    />
+    <title>一番くじウィジェット</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css?v=20261101-persistent-mypage" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">最近の一番くじ</p>
+          <h1>一番くじウィジェット</h1>
+        </div>
+        <button id="options-menu-toggle" type="button" class="options-menu-toggle" aria-label="オプションを開く" aria-expanded="false">⋯</button>
+      </header>
+
+      <p class="hero-copy">今すぐ買える一番くじを、見やすく・すぐに確認</p>
+
+      <section class="summary-panel" aria-live="polite">
+        <div>
+          <span class="summary-label">対象期間</span>
+          <strong id="range-label">直近7日</strong>
+        </div>
+        <div>
+          <span class="summary-label">対象数</span>
+          <strong id="count-label">0件</strong>
+        </div>
+        <div>
+          <span class="summary-label">状態</span>
+          <strong id="status-label">取得中</strong>
+        </div>
+        <div>
+          <span class="summary-label">ダブルチャンス挑戦回数</span>
+          <strong id="double-chance-count">未取得</strong>
+        </div>
+      </section>
+
+      <aside class="options-panel" id="options-panel" aria-hidden="true">
+        <div class="options-header">
+          <span>オプション</span>
+          <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="オプションを閉じる">✕</button>
+        </div>
+
+        <div class="options-content">
+          <section class="toolbar">
+            <div class="filter-group">
+              <label for="year-select">表示期間</label>
+              <div class="date-range-grid">
+                <select id="year-select" aria-label="年を選択"></select>
+                <span class="date-range-separator">年</span>
+                <select id="month-select" aria-label="月を選択"></select>
+              </div>
+            </div>
+          </section>
+
+          <section class="quick-filter" aria-label="おすすめ絞り込み">
+            <button class="quick-filter-btn is-active" data-mode="all" type="button">全件</button>
+            <button class="quick-filter-btn" data-mode="online" type="button">オンライン販売あり</button>
+          </section>
+
+          <section class="favorite-editor" aria-label="好きなタイトル">
+            <label class="favorite-label" for="favorite-title-input">好きなタイトル</label>
+            <div class="favorite-form">
+              <input id="favorite-title-input" type="text" maxlength="40" placeholder="例: ONE PIECE" />
+              <button id="add-favorite-button" type="button">追加</button>
+            </div>
+            <div id="favorite-list" class="favorite-list" aria-live="polite"></div>
+          </section>
+
+          <section class="mypage-panel" aria-label="ダブルチャンス挑戦回数">
+            <h2>ダブルチャンス挑戦回数</h2>
+            <button id="double-chance-fetch-button" class="mypage-link" type="button">ログインして回数を取得</button>
+            <details class="mypage-import-help">
+              <summary>使い方・ログイン情報について</summary>
+              <ol>
+                <li>ボタンを押すと、専用のMicrosoft Edgeが開いて公式マイページに移動します。</li>
+                <li>初回はそのEdgeで手動ログインします。ログイン完了後、回数を自動取得します。</li>
+                <li>次回からはボタンを押すだけです。ログイン状態が切れた場合は、再度ログインしてください。</li>
+              </ol>
+              <p>アプリはID・パスワードを取得・保存しません。ログイン状態は専用ブラウザーのプロファイルに端末内だけで保存されます。</p>
+              <p id="double-chance-status" class="mypage-import-status" aria-live="polite"></p>
+            </details>
+          </section>
+
+          <section class="source-panel">
+            <button id="refresh-button" type="button">最新を取得</button>
+          </section>
+        </div>
+      </aside>
+
+      <main class="app-layout">
+        <section class="main-panel">
+          <section id="lottery-list" class="lottery-list" aria-live="polite"></section>
+          <template id="lottery-template">
+            <article class="lottery-card">
+              <div class="lottery-visual-wrap">
+                <img class="lottery-thumb" alt="" />
+              </div>
+              <div class="lottery-top"></div>
+              <h2 class="lottery-title"></h2>
+              <p class="lottery-meta"></p>
+              <div class="lottery-links">
+                <a class="lottery-product-link" target="_blank" rel="noreferrer">商品ページ</a>
+                <a class="lottery-shop-link" target="_blank" rel="noreferrer">公式店舗検索</a>
+                <a class="lottery-online-link" target="_blank" rel="noreferrer">オンライン販売</a>
+              </div>
+              <dl class="lottery-detail">
+                <div>
+                  <dt>店頭販売日</dt>
+                  <dd class="lottery-date"></dd>
+                </div>
+                <div class="lottery-online-schedule">
+                  <dt>オンライン販売日</dt>
+                  <dd class="lottery-online-date"></dd>
+                </div>
+              </dl>
+              <section class="store-panel">
+                <h3 class="store-heading">取扱店舗</h3>
+                <div class="store-list"></div>
+              </section>
+            </article>
+          </template>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="./app.js?v=20261101-persistent-mypage"></script>
+  </body>
+</html>

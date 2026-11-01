@@ -1,0 +1,17 @@
+{
+  "name": "一番くじウィジェット",
+  "short_name": "くじ確認",
+  "description": "直近一週間の一番くじをホーム画面で簡単に確認できるアプリです。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff7f1",
+  "theme_color": "#ff7a18",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
