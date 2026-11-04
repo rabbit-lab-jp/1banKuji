@@ -442,31 +442,6 @@ input:focus {
   opacity: 0.8;
 }
 
-.buy-target-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px 4px 6px;
-  border: 1px solid rgba(255, 122, 24, 0.12);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
-  color: var(--primary-dark);
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
-}
-
-.buy-target-toggle input {
-  appearance: auto;
-  -webkit-appearance: checkbox;
-  width: 15px;
-  height: 15px;
-  margin: 0;
-  accent-color: var(--primary);
-  cursor: pointer;
-}
-
 .favorite-empty {
   font-size: 0.78rem;
   color: var(--muted);
@@ -850,15 +825,6 @@ input:focus {
   color: #0f5f9d;
 }
 
-.lottery-card.is-buy-target {
-  border-color: rgba(245, 158, 11, 0.55);
-  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,214,0.94));
-}
-
-.lottery-card.is-buy-target .lottery-content {
-  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,247,214,0.42));
-}
-
 .featured-indicator {
   display: inline-flex;
   align-items: center;
@@ -874,11 +840,6 @@ input:focus {
 .favorite-indicator {
   background: linear-gradient(135deg, #dbeafe 0%, #7dd3fc 100%);
   color: #0f3d5c;
-}
-
-.buy-indicator {
-  background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
-  color: #78350f;
 }
 
 .toast-container {

@@ -3,7 +3,6 @@ const MONTH_STORAGE_KEY = 'ichiban-kuji-month';
 const MODE_STORAGE_KEY = 'ichiban-kuji-mode';
 const FAVORITES_STORAGE_KEY = 'ichiban-kuji-favorites';
 const PRODUCT_FAVORITES_STORAGE_KEY = 'ichiban-kuji-product-favorites';
-const BUY_TARGETS_STORAGE_KEY = 'ichiban-kuji-buy-targets';
 const DOUBLE_CHANCE_COUNT_STORAGE_KEY = 'ichiban-kuji-double-chance-count';
 const VALID_MODES = ['all', 'online'];
 
@@ -14,7 +13,6 @@ const state = {
   selectedMode: 'all',
   favorites: [],
   productFavorites: [],
-  buyTargets: [],
   lastNotifiedFavoriteTitles: [],
 };
 
@@ -195,28 +193,6 @@ function getFavoriteTitles() {
   }
 }
 
-function getBuyTargets() {
-  try {
-    const saved = localStorage.getItem(BUY_TARGETS_STORAGE_KEY);
-    if (!saved) {
-      return [];
-    }
-
-    const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed
-      .map((item) => String(item).trim())
-      .filter((item) => item && item.length <= 80)
-      .filter((item, index, list) => list.indexOf(item) === index)
-      .slice(0, 100);
-  } catch (error) {
-    return [];
-  }
-}
-
 function getProductFavorites() {
   try {
     const saved = localStorage.getItem(PRODUCT_FAVORITES_STORAGE_KEY);
@@ -307,15 +283,6 @@ function isFavoriteMatch(itemTitle) {
   return state.favorites.some((favorite) => getFavoriteMatchScore(itemTitle, favorite) > 0);
 }
 
-function isBuyTarget(itemTitle) {
-  if (!state.buyTargets.length) {
-    return false;
-  }
-
-  const normalizedTitle = normalizeFavoriteText(itemTitle);
-  return state.buyTargets.some((target) => normalizeFavoriteText(target) === normalizedTitle);
-}
-
 function getFavoritePriority(item) {
   if (!state.favorites.length) {
     return 0;
@@ -328,12 +295,6 @@ function getFavoritePriority(item) {
 
 function sortFeaturedFirst(items) {
   return [...items].sort((a, b) => {
-    const aBuyTarget = isBuyTarget(a.title) ? 1 : 0;
-    const bBuyTarget = isBuyTarget(b.title) ? 1 : 0;
-    if (aBuyTarget !== bBuyTarget) {
-      return bBuyTarget - aBuyTarget;
-    }
-
     const aProductFavorite = state.productFavorites.includes(getProductFavoriteKey(a)) ? 1 : 0;
     const bProductFavorite = state.productFavorites.includes(getProductFavoriteKey(b)) ? 1 : 0;
     if (aProductFavorite !== bProductFavorite) {
@@ -361,12 +322,6 @@ function persistFavoriteTitles(titles) {
   state.favorites = sanitizedList;
   localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(sanitizedList));
   renderFavoriteChips();
-}
-
-function persistBuyTargets(titles) {
-  const sanitizedList = Array.from(new Set(titles.map((title) => String(title).trim()).filter(Boolean))).slice(0, 100);
-  state.buyTargets = sanitizedList;
-  localStorage.setItem(BUY_TARGETS_STORAGE_KEY, JSON.stringify(sanitizedList));
 }
 
 function renderFavoriteChips() {
@@ -401,7 +356,6 @@ function renderFavoriteChips() {
     chip.appendChild(remove);
     chip.addEventListener('click', () => {
       persistFavoriteTitles(state.favorites.filter((item) => item !== title));
-      persistBuyTargets(state.buyTargets.filter((item) => !getFavoriteMatchScore(item, title)));
       render();
     });
 
@@ -548,25 +502,6 @@ function render() {
       render();
     });
 
-    const buyCheckbox = document.createElement('label');
-    buyCheckbox.className = 'buy-target-toggle';
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = isBuyTarget(item.title);
-    checkbox.setAttribute('aria-label', `${item.title}を買いたいにチェック`);
-    checkbox.addEventListener('change', (event) => {
-      const nextTargets = event.target.checked
-        ? Array.from(new Set([...state.buyTargets, item.title]))
-        : state.buyTargets.filter((target) => normalizeFavoriteText(target) !== normalizeFavoriteText(item.title));
-      persistBuyTargets(nextTargets);
-      render();
-    });
-    buyCheckbox.appendChild(checkbox);
-    const buyLabel = document.createElement('span');
-    buyLabel.textContent = '買いたい！';
-    buyCheckbox.appendChild(buyLabel);
-    top.insertBefore(buyCheckbox, top.firstChild);
-
     if (isFavoriteMatch(item.title)) {
       card.classList.add('is-favorite');
       titleNode.classList.add('favorite-highlight');
@@ -575,11 +510,6 @@ function render() {
       indicator.className = 'featured-indicator favorite-indicator';
       indicator.textContent = '登録中';
       top.appendChild(indicator);
-    }
-
-    if (isBuyTarget(item.title)) {
-      card.classList.add('is-buy-target');
-      checkbox.checked = true;
     }
 
     titleNode.textContent = item.title;
@@ -707,7 +637,6 @@ function populateMonthSelectors() {
 
 state.favorites = getFavoriteTitles();
 state.productFavorites = getProductFavorites();
-state.buyTargets = getBuyTargets();
 state.selectedYear = getInitialYear();
 state.selectedMonth = getInitialMonth();
 state.selectedMode = getInitialMode();
