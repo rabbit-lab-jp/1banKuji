@@ -224,11 +224,26 @@ def parse_1kuji_detail_page(detail_html: str, detail_url: str) -> dict[str, Any]
     title_text = re.sub(r'の詳細へ$', '', title_text)
     title_text = title_text.strip() or '一番くじ'
 
-    og_image = soup.select_one('meta[property="og:image"]')
-    thumbnail = normalize_thumbnail_url(og_image.get('content', '').strip() if og_image else '')
+    product_images = [
+        normalize_thumbnail_url(urljoin(detail_url, image.get('src') or image.get('data-src') or ''))
+        for image in soup.select('img[src], img[data-src]')
+    ]
+    thumbnail = next(
+        (image for image in product_images if '/uploads/product_item/image/' in urlparse(image).path),
+        '',
+    )
     if not thumbnail:
-        first_img = soup.select_one('img')
-        thumbnail = normalize_thumbnail_url(first_img.get('src', '').strip() if first_img else '')
+        thumbnail = next(
+            (image for image in product_images if '/uploads/product/top_banner/' in urlparse(image).path),
+            '',
+        )
+    if not thumbnail:
+        og_image = soup.select_one('meta[property="og:image"]')
+        thumbnail = normalize_thumbnail_url(
+            urljoin(detail_url, og_image.get('content', '').strip()) if og_image else ''
+        )
+    if not thumbnail:
+        thumbnail = next((image for image in product_images if image), '')
 
     online_url = ''
     candidates: list[str] = []

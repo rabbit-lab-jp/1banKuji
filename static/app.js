@@ -2,6 +2,7 @@ const YEAR_STORAGE_KEY = 'ichiban-kuji-year';
 const MONTH_STORAGE_KEY = 'ichiban-kuji-month';
 const MODE_STORAGE_KEY = 'ichiban-kuji-mode';
 const FAVORITES_STORAGE_KEY = 'ichiban-kuji-favorites';
+const PRODUCT_FAVORITES_STORAGE_KEY = 'ichiban-kuji-product-favorites';
 const BUY_TARGETS_STORAGE_KEY = 'ichiban-kuji-buy-targets';
 const DOUBLE_CHANCE_COUNT_STORAGE_KEY = 'ichiban-kuji-double-chance-count';
 const VALID_MODES = ['all', 'online'];
@@ -12,6 +13,7 @@ const state = {
   selectedMonth: new Date().getMonth() + 1,
   selectedMode: 'all',
   favorites: [],
+  productFavorites: [],
   buyTargets: [],
   lastNotifiedFavoriteTitles: [],
 };
@@ -215,6 +217,36 @@ function getBuyTargets() {
   }
 }
 
+function getProductFavorites() {
+  try {
+    const saved = localStorage.getItem(PRODUCT_FAVORITES_STORAGE_KEY);
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter((item) => typeof item === 'string' && item.length <= 2048)
+      .filter((item, index, list) => list.indexOf(item) === index)
+      .slice(0, 1000);
+  } catch (error) {
+    return [];
+  }
+}
+
+function getProductFavoriteKey(item) {
+  return item.url || `${item.title}::${item.date}`;
+}
+
+function persistProductFavorites(favorites) {
+  state.productFavorites = Array.from(new Set(favorites)).slice(0, 1000);
+  localStorage.setItem(PRODUCT_FAVORITES_STORAGE_KEY, JSON.stringify(state.productFavorites));
+}
+
 function persistMode(value) {
   const safeValue = VALID_MODES.includes(value) ? value : 'all';
   state.selectedMode = safeValue;
@@ -300,6 +332,12 @@ function sortFeaturedFirst(items) {
     const bBuyTarget = isBuyTarget(b.title) ? 1 : 0;
     if (aBuyTarget !== bBuyTarget) {
       return bBuyTarget - aBuyTarget;
+    }
+
+    const aProductFavorite = state.productFavorites.includes(getProductFavoriteKey(a)) ? 1 : 0;
+    const bProductFavorite = state.productFavorites.includes(getProductFavoriteKey(b)) ? 1 : 0;
+    if (aProductFavorite !== bProductFavorite) {
+      return bProductFavorite - aProductFavorite;
     }
 
     const aFavoritePriority = getFavoritePriority(a);
@@ -476,6 +514,8 @@ function render() {
     const node = lotteryTemplate.content.cloneNode(true);
     const card = node.querySelector('.lottery-card');
     const thumb = node.querySelector('.lottery-thumb');
+    const category = node.querySelector('.lottery-category');
+    const favoriteButton = node.querySelector('.lottery-favorite-button');
     const productLink = node.querySelector('.lottery-product-link');
     const shopLink = node.querySelector('.lottery-shop-link');
     const onlineLink = node.querySelector('.lottery-online-link');
@@ -483,6 +523,30 @@ function render() {
     const top = node.querySelector('.lottery-top');
     const onlineSchedule = node.querySelector('.lottery-online-schedule');
     const storeList = node.querySelector('.store-list');
+    const productKey = getProductFavoriteKey(item);
+    const isProductFavorite = state.productFavorites.includes(productKey);
+
+    card.classList.toggle('is-product-favorite', isProductFavorite);
+    category.textContent = item.category || '一番くじ';
+    const releaseLabel = node.querySelector('.lottery-release-label');
+    releaseLabel.textContent = `${state.selectedYear}年${state.selectedMonth}月発売予定`;
+    const prize = node.querySelector('.lottery-prize');
+    if (item.prize && item.prize !== 'N/A') {
+      prize.textContent = item.prize;
+    } else {
+      prize.hidden = true;
+    }
+
+    favoriteButton.textContent = isProductFavorite ? '★' : '☆';
+    favoriteButton.setAttribute('aria-pressed', String(isProductFavorite));
+    favoriteButton.setAttribute('aria-label', isProductFavorite ? 'お気に入りから削除' : 'お気に入りに登録');
+    favoriteButton.addEventListener('click', () => {
+      const nextFavorites = isProductFavorite
+        ? state.productFavorites.filter((favorite) => favorite !== productKey)
+        : [...state.productFavorites, productKey];
+      persistProductFavorites(nextFavorites);
+      render();
+    });
 
     const buyCheckbox = document.createElement('label');
     buyCheckbox.className = 'buy-target-toggle';
@@ -543,11 +607,16 @@ function render() {
       storeList.appendChild(empty);
     }
 
+    const showThumbnailPlaceholder = () => {
+      thumb.hidden = true;
+      thumb.nextElementSibling.classList.add('is-visible');
+    };
+    thumb.addEventListener('error', showThumbnailPlaceholder, { once: true });
     if (item.thumbnail && !/1kuji\.com\/ogp\.jpg|ogp\.jpg|logo/i.test(item.thumbnail)) {
       thumb.src = item.thumbnail;
       thumb.alt = item.title;
     } else {
-      thumb.parentElement.style.display = 'none';
+      showThumbnailPlaceholder();
     }
 
     if (item.url) {
@@ -637,6 +706,7 @@ function populateMonthSelectors() {
 }
 
 state.favorites = getFavoriteTitles();
+state.productFavorites = getProductFavorites();
 state.buyTargets = getBuyTargets();
 state.selectedYear = getInitialYear();
 state.selectedMonth = getInitialMonth();

@@ -10,7 +10,7 @@
     />
     <title>一番くじウィジェット</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=20261101-persistent-mypage" />
+    <link rel="stylesheet" href="./styles.css?v=20261105-product-cards" />
   </head>
   <body>
     <div class="app-shell">
@@ -102,30 +102,39 @@
           <template id="lottery-template">
             <article class="lottery-card">
               <div class="lottery-visual-wrap">
-                <img class="lottery-thumb" alt="" />
+                <img class="lottery-thumb" alt="" loading="lazy" />
+                <div class="image-placeholder" aria-hidden="true"><span>一</span></div>
+                <span class="lottery-category"></span>
+                <button class="lottery-favorite-button" type="button" aria-label="お気に入りに登録">☆</button>
               </div>
-              <div class="lottery-top"></div>
-              <h2 class="lottery-title"></h2>
-              <p class="lottery-meta"></p>
-              <div class="lottery-links">
-                <a class="lottery-product-link" target="_blank" rel="noreferrer">商品ページ</a>
-                <a class="lottery-shop-link" target="_blank" rel="noreferrer">公式店舗検索</a>
-                <a class="lottery-online-link" target="_blank" rel="noreferrer">オンライン販売</a>
+              <div class="lottery-content">
+                <div class="lottery-product-meta">
+                  <p class="lottery-release-label"></p>
+                  <span class="lottery-prize"></span>
+                </div>
+                <div class="lottery-top"></div>
+                <h2 class="lottery-title"></h2>
+                <p class="lottery-meta"></p>
+                <div class="lottery-links">
+                  <a class="lottery-product-link" target="_blank" rel="noreferrer">商品ページ</a>
+                  <a class="lottery-shop-link" target="_blank" rel="noreferrer">公式店舗検索</a>
+                  <a class="lottery-online-link" target="_blank" rel="noreferrer">オンライン販売</a>
+                </div>
+                <dl class="lottery-detail">
+                  <div>
+                    <dt>店頭販売日</dt>
+                    <dd class="lottery-date"></dd>
+                  </div>
+                  <div class="lottery-online-schedule">
+                    <dt>オンライン販売日</dt>
+                    <dd class="lottery-online-date"></dd>
+                  </div>
+                </dl>
+                <section class="store-panel">
+                  <h3 class="store-heading">取扱店舗</h3>
+                  <div class="store-list"></div>
+                </section>
               </div>
-              <dl class="lottery-detail">
-                <div>
-                  <dt>店頭販売日</dt>
-                  <dd class="lottery-date"></dd>
-                </div>
-                <div class="lottery-online-schedule">
-                  <dt>オンライン販売日</dt>
-                  <dd class="lottery-online-date"></dd>
-                </div>
-              </dl>
-              <section class="store-panel">
-                <h3 class="store-heading">取扱店舗</h3>
-                <div class="store-list"></div>
-              </section>
             </article>
           </template>
         </section>
@@ -134,6 +143,6 @@
 
     <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-    <script src="./app.js?v=20261101-persistent-mypage"></script>
+    <script src="./app.js?v=20261105-product-cards"></script>
   </body>
 </html>
